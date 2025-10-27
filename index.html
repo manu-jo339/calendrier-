@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ChronoDate - Votre Compagnon Quotidien</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #f093fb;
+            --text-color: #333;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --shadow: 0 20px 40px rgba(0,0,0,0.1);
+            --gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+        [data-theme="dark"] {
+            --primary-color: #8a2be2;
+            --secondary-color: #4b0082;
+            --accent-color: #ff6b6b;
+            --text-color: #f0f0f0;
+            --bg-color: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;transition:all .25s ease}
+        body{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--gradient);
+            min-height:100vh;color:var(--text-color);padding:20px;line-height:1.6;
+        }
+        .container{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:30px}
+        @media(max-width:1100px){.container{grid-template-columns:1fr}}
+        .main-card{background:var(--card-bg);border-radius:20px;padding:25px;box-shadow:var(--shadow);backdrop-filter: blur(6px);margin-bottom:20px}
+        .section-title{font-size:1.2em;margin-bottom:15px;color:var(--primary-color);display:flex;align-items:center;gap:10px}
+        .date-display{text-align:center;margin-bottom:20px}
+        .day-name{font-size:1.2em;color:var(--primary-color);font-weight:300}
+        .date-number{font-size:3.5em;font-weight:700;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .month-year{font-size:1.1em;opacity:.9}
+        .additional-info{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:20px 0}
+        .info-card{background:rgba(255,255,255,0.06);padding:12px;border-radius:12px;backdrop-filter: blur(4px);border:1px solid rgba(255,255,255,0.06)}
+        .info-card h3{font-size:.85em;margin-bottom:6px;opacity:.8;display:flex;align-items:center;gap:8px}
+        .info-card p{font-size:1.05em;font-weight:600}
+        .quote-section{background:var(--gradient);color:white;padding:18px;border-radius:12px;margin:15px 0;text-align:center;position:relative}
+        .quote-text{font-size:1.05em;font-style:italic;margin-bottom:8px}
+        .quote-author{opacity:.9;font-weight:600}
+        .share-section{display:flex;justify-content:center;gap:12px;margin-top:12px}
+        .share-btn{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1em;cursor:pointer}
+        .twitter{background:#1DA1F2}.facebook{background:#3b5998}.whatsapp{background:#25D366}.linkedin{background:#0077b5}
+        .theme-switcher{position:fixed;top:20px;right:20px;background:var(--card-bg);border:none;width:50px;height:50px;border-radius:50%;cursor:pointer;box-shadow:var(--shadow);color:var(--text-color);font-size:1.2em;z-index:1000}
+        .gallery-section{margin-top:10px}
+        .gallery-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:10px}
+        .capital-card{background:var(--card-bg);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,0.05)}
+        .capital-image{width:100%;height:160px;background:linear-gradient(45deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:2em}
+        .capital-image img{width:100%;height:100%;object-fit:cover}
+        .capital-info{padding:12px}
+        .capital-name{font-weight:700;color:var(--primary-color);display:flex;align-items:center;gap:8px;margin-bottom:6px}
+        .capital-description{font-size:.9em;opacity:.85}
+        .weather-card .weather-main{display:flex;align-items:center;gap:16px;margin-bottom:12px}
+        .weather-temp{font-size:2.2em;font-weight:700}
+        .forecast-grid{display:flex;gap:10px;overflow:auto;padding-top:12px}
+        .forecast-day{min-width:110px;background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;text-align:center}
+        .countdown-display{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;text-align:center;margin-top:12px}
+        .countdown-unit{background:rgba(255,255,255,0.04);padding:12px;border-radius:10px}
+        .countdown-number{font-size:1.3em;font-weight:700;color:var(--primary-color)}
+        /* calendar */
+        .calendar { display: grid; gap:10px; }
+        .calendar-header { display:flex;justify-content:space-between;align-items:center; }
+        .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:8px; }
+        .cal-cell { background:rgba(255,255,255,0.04); padding:8px;border-radius:6px; min-height:64px; display:flex; flex-direction:column; justify-content:flex-start; }
+        .cal-cell.today { outline:2px solid var(--primary-color); }
+        .cal-cell .date-num { font-weight:700; margin-bottom:6px; }
+        .cal-cell .event { font-size:.8em; margin-top:auto; background:var(--accent-color); color:#111; padding:3px 6px; border-radius:6px; align-self:flex-start; }
+        .profile-img img{width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid var(--primary-color)}
+        .profile-controls { display:flex; gap:8px; flex-direction:column; margin-top:12px }
+        input[type="text"], textarea, input[type="datetime-local"], select { padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.08); width:100%; }
+        button.btn { background:var(--primary-color); color:white; padding:8px 12px;border-radius:8px;border:none;cursor:pointer }
+        .controls-row { display:flex; gap:8px; flex-wrap:wrap }
+        .small { padding:6px 8px; font-size:.9em }
+        
+    </style>
+</head>
+<body>
+    <button class="theme-switcher" onclick="toggleTheme()" id="themeBtn">🌙</button>
+
+    <div class="container">
+        <!-- LEFT -->
+        <div class="left-column">
+            <div class="main-card">
+                <div class="date-display">
+                    <div class="day-name" id="dayName"></div>
+                    <div class="date-number" id="dateNumber"></div>
+                    <div class="month-year" id="monthYear"></div>
+                </div>
+
+                <div class="additional-info">
+                    <div class="info-card">
+                        <h3><i class="fas fa-clock"></i> HEURE</h3>
+                        <p id="currentTime"></p>
+                    </div>
+                    <div class="info-card">
+                        <h3><i class="fas fa-globe"></i> FUSEAU</h3>
+                        <p id="timezone"></p>
+                    </div>
+                    <div class="info-card">
+                        <h3><i class="fas fa-calendar-week"></i> SEMAINE</h3>
+                        <p id="weekNumber"></p>
+                    </div>
+                    <div class="info-card">
+                        <h3><i class="fas fa-leaf"></i> SAISON</h3>
+                        <p id="season"></p>
+                    </div>
+                </div>
+
+                <!-- Quote -->
+                <div class="quote-section">
+                    <i class="fas fa-quote-left"></i>
+                    <div class="quote-text" id="dailyQuote">Chargement...</div>
+                    <div class="quote-author" id="quoteAuthor"></div>
+
+                    <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;align-items:center">
+                        <button class="btn small" id="readQuoteBtn">🔊 Lire la citation</button>
+                        <button class="btn small" id="stopReadBtn" style="background:#ff6b6b">⏹ Arrêter</button>
+                        <label style="display:flex;align-items:center;gap:6px;margin-left:8px">
+                            <input type="checkbox" id="autoRead"> Lecture auto
+                        </label>
+                    </div>
+                </div>
+
+                <div class="share-section">
+                    <div class="share-btn twitter" onclick="shareOnTwitter()"><i class="fab fa-twitter"></i></div>
+                    <div class="share-btn facebook" onclick="shareOnFacebook()"><i class="fab fa-facebook-f"></i></div>
+                    <div class="share-btn whatsapp" onclick="shareOnWhatsApp()"><i class="fab fa-whatsapp"></i></div>
+                    <div class="share-btn linkedin" onclick="shareOnLinkedIn()"><i class="fab fa-linkedin-in"></i></div>
+                </div>
+            </div>
+
+            <!-- CALENDAR -->
+            <div class="main-card calendar" id="calendarCard">
+                <div class="calendar-header">
+                    <div>
+                        <h3 class="section-title"><i class="fas fa-calendar-alt"></i> CALENDRIER</h3>
+                        <div id="currentMonthLabel" style="margin-top:-8px;margin-left:6px;color:var(--text-color);opacity:.8"></div>
+                    </div>
+                    <div class="controls-row">
+                        <button class="btn small" id="prevMonthBtn">◀</button>
+                        <button class="btn small" id="nextMonthBtn">▶</button>
+                        <button class="btn small" id="addEventBtn">➕ Ajouter évènement</button>
+                    </div>
+                </div>
+
+                <div class="cal-grid" id="calGridHeader" style="margin-top:8px">
+                    <div style="text-align:center;font-weight:700">Lun</div>
+                    <div style="text-align:center;font-weight:700">Mar</div>
+                    <div style="text-align:center;font-weight:700">Mer</div>
+                    <div style="text-align:center;font-weight:700">Jeu</div>
+                    <div style="text-align:center;font-weight:700">Ven</div>
+                    <div style="text-align:center;font-weight:700">Sam</div>
+                    <div style="text-align:center;font-weight:700">Dim</div>
+                </div>
+
+                <div class="cal-grid" id="calGrid"></div>
+
+                <!-- hidden event form -->
+                <div id="eventForm" style="display:none;margin-top:10px">
+                    <input type="datetime-local" id="eventDateInput">
+                    <input type="text" id="eventTitleInput" placeholder="Titre">
+                    <div style="display:flex;gap:8px;margin-top:8px">
+                        <button class="btn" id="saveEventBtn">Enregistrer</button>
+                        <button class="btn" id="cancelEventBtn" style="background:#888">Annuler</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery capitals -->
+            <div class="main-card gallery-section">
+                <h3 class="section-title"><i class="fas fa-globe-africa"></i> CAPITALES AFRICAINES</h3>
+                <div class="gallery-controls" style="margin-bottom:8px">
+                    <button class="gallery-btn active small" onclick="showAfricanCapitals('all')">🌍 Toutes</button>
+                    <button class="gallery-btn small" onclick="showAfricanCapitals('central')">🌴 Centrale</button>
+                    <button class="gallery-btn small" onclick="showAfricanCapitals('west')">☀ Ouest</button>
+                    <button class="gallery-btn small" onclick="showAfricanCapitals('east')">🏔 Est</button>
+                    <button class="gallery-btn small" onclick="showAfricanCapitals('north')">🏜 Nord</button>
+                    <button class="gallery-btn small" onclick="showAfricanCapitals('south')">🦁 Sud</button>
+                </div>
+                <div class="gallery-grid" id="capitalsGrid"></div>
+            </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="right-column">
+            <div class="main-card weather-card">
+                <h3 class="section-title"><i class="fas fa-cloud-sun"></i> MÉTÉO ACTUELLE & PRÉVISIONS</h3>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <div class="weather-main">
+                            <div id="weatherIcon" style="font-size:2.2em;color:#FFA500"><i class="fas fa-sun"></i></div>
+                            <div>
+                                <div class="weather-temp" id="weatherTemp">--°C</div>
+                                <div id="cityName" style="opacity:.85">Cliquez sur "Ma position" pour localiser</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+                        <button class="location-btn" onclick="getLocation()"> <i class="fas fa-location-crosshairs"></i> Ma position</button>
+                        <select id="unitsSelect" onchange="refreshWeather()" style="margin-top:6px;padding:6px;border-radius:6px">
+                            <option value="metric">°C</option>
+                            <option value="imperial">°F</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+                    <div class="info-card">
+                        <h3><i class="fas fa-tint"></i> HUMIDITÉ</h3>
+                        <p id="humidity">--%</p>
+                    </div>
+                    <div class="info-card">
+                        <h3><i class="fas fa-wind"></i> VENT</h3>
+                        <p id="windSpeed">-- km/h</p>
+                    </div>
+                </div>
+
+                <div style="margin-top:10px">
+                    <div class="section-title" style="font-size:1em">Prévision 7 jours</div>
+                    <div class="forecast-grid" id="forecastGrid">--</div>
+                </div>
+
+                <div id="weatherError" style="display:none;color:#ff6b6b;margin-top:8px;text-align:center">
+                    <i class="fas fa-exclamation-triangle"></i> Impossible de récupérer la météo
+                </div>
+            </div>
+
+            <!-- countdown -->
+            <div class="main-card countdown-section">
+                <h3 class="section-title"><i class="fas fa-hourglass-half"></i> COMPTE À REBOURS</h3>
+                <div class="countdown-input" style="display:flex;gap:8px">
+                    <input type="datetime-local" id="eventDate">
+                    <button class="btn" onclick="setCountdown()">Démarrer</button>
+                </div>
+                <div class="countdown-display">
+                    <div class="countdown-unit"><div class="countdown-number" id="days">00</div><div class="countdown-label">JOURS</div></div>
+                    <div class="countdown-unit"><div class="countdown-number" id="hours">00</div><div class="countdown-label">HEURES</div></div>
+                    <div class="countdown-unit"><div class="countdown-number" id="minutes">00</div><div class="countdown-label">MINUTES</div></div>
+                    <div class="countdown-unit"><div class="countdown-number" id="seconds">00</div><div class="countdown-label">SECONDES</div></div>
+                </div>
+                <div id="countdownEvent" style="text-align:center;margin-top:10px;font-weight:700"></div>
+            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+/* =========================
+   CONFIG
+   ========================= */
+const OPENWEATHER_API_KEY = "aaae736a252054e7b8088977ac47870d"; // <-- METS TA CLE ICI
+const WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather";
+let currentCoords = null;
+
+/* =========================
+   DATE & HEURE
+   ========================= */
+function updateDateTime() {
+    const now = new Date();
+    const days = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+    const months = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+
+    document.getElementById("dayName").textContent = days[now.getDay()];
+    document.getElementById("dateNumber").textContent = now.getDate();
+    document.getElementById("monthYear").textContent = `${months[now.getMonth()]} ${now.getFullYear()}`;
+    document.getElementById("currentTime").textContent = now.toLocaleTimeString();
+    document.getElementById("timezone").textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const oneJan = new Date(now.getFullYear(), 0, 1);
+    const week = Math.ceil((((now - oneJan) / 86400000) + oneJan.getDay() + 1) / 7);
+    document.getElementById("weekNumber").textContent = week;
+
+    const month = now.getMonth() + 1;
+    let season = "Automne 🍂";
+    if (month >= 3 && month <= 5) season = "Printemps 🌼";
+    if (month >= 6 && month <= 8) season = "Été ☀";
+    if (month >= 9 && month <= 11) season = "Automne 🍂";
+    if (month === 12 || month <= 2) season = "Hiver ❄";
+    document.getElementById("season").textContent = season;
+}
+setInterval(updateDateTime, 1000);
+updateDateTime();
+
+/* =========================
+   QUOTE: récupération depuis ZenQuotes (ou fallback)
+   Lecture vocale avec SpeechSynthesis
+   ========================= */
+async function setDailyQuote() {
+    try {
+        // ZenQuotes API (gratuit) - "today" renvoie une citation du jour
+        const res = await fetch("https://zenquotes.io/api/today");
+        const data = await res.json();
+        const q = data && data[0] ? data[0] : null;
+        if (q) {
+            document.getElementById("dailyQuote").textContent = q.q;
+            document.getElementById("quoteAuthor").textContent = "— " + q.a;
+            if (document.getElementById("autoRead").checked) speakText(`${q.q} par ${q.a}`);
+        } else throw new Error("Pas de citation");
+    } catch (err) {
+        // fallback local
+        const fallback = { q: "Reste motivé·e — chaque petit pas compte.", a: "Inconnu" };
+        document.getElementById("dailyQuote").textContent = fallback.q;
+        document.getElementById("quoteAuthor").textContent = "— " + fallback.a;
+    }
+}
+setDailyQuote();
+
+const synth = window.speechSynthesis;
+function speakText(text) {
+    if (!synth) return alert("Synthèse vocale non supportée");
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'fr-FR';
+    u.rate = 1;
+    synth.speak(u);
+}
+document.getElementById("readQuoteBtn").addEventListener('click', () => {
+    const q = document.getElementById("dailyQuote").textContent;
+    const a = document.getElementById("quoteAuthor").textContent.replace('— ','');
+    speakText(`${q} — ${a}`);
+});
+document.getElementById("stopReadBtn").addEventListener('click', () => synth && synth.cancel());
+
+/* =========================
+   CAPITALES AFRICAINES (RestCountries + images Unsplash)
+   ========================= */
+async function loadCapitals(region = "all") {
+    const grid = document.getElementById("capitalsGrid");
+    grid.innerHTML = "Chargement...";
+    try {
+        const res = await fetch("https://restcountries.com/v3.1/region/africa");
+        let countries = await res.json();
+
+        // filter by region (simple mapping by cca2 codes)
+        const zones = {
+            central: ["CM","CG","GA","CD","GQ","ST","TD","CF"],
+            west: ["SN","GN","SL","LR","CI","GH","TG","BJ","NG","ML","BF","MR","NE","CV","GM"],
+            east: ["KE","UG","TZ","ET","ER","DJ","SO","RW","BI","SS","MG","MU","SC"],
+            north: ["DZ","EG","TN","MA","LY","SD","EH"],
+            south: ["ZA","NA","BW","ZW","ZM","MW","LS","SZ","AO","MZ"]
+        };
+
+        if (region !== "all") {
+            countries = countries.filter(c => zones[region]?.includes(c.cca2));
+        }
+
+        grid.innerHTML = "";
+        // limit for performance
+        for (const country of countries.slice(0, 40)) {
+            const capital = country.capital?.[0] || country.name.common;
+            const flag = country.flag || '';
+            const nameFr = country.translations?.fra?.common || country.name.common;
+            const img = `https://source.upload.wikimedia.org/wikipedia/commons/600x400/?${encodeURIComponent(capital + ' ' + nameFr + ' city')}`;
+            const card = document.createElement('div');
+            card.className = 'capital-card';
+            card.innerHTML = `
+                <div class="capital-image"><img src="${img}" alt="${capital}"></div>
+                <div class="capital-info">
+                    <div class="capital-name">${flag} ${capital}</div>
+                    <div class="capital-description">${nameFr}</div>
+                </div>`;
+            grid.appendChild(card);
+        }
+    } catch (err) {
+        grid.innerHTML = "<div>Erreur lors du chargement des capitales</div>";
+    }
+}
+loadCapitals();
+
+function showAfricanCapitals(region) {
+    // toggle active class (simple)
+    document.querySelectorAll(".gallery-btn").forEach(b => b.classList.remove("active"));
+    event.target.classList.add("active");
+    loadCapitals(region);
+}
+
+/* =========================
+   THEME
+   ========================= */
+function toggleTheme() {
+    const isDark = document.body.getAttribute("data-theme") === "dark";
+    document.body.setAttribute("data-theme", isDark ? "light" : "dark");
+    localStorage.setItem("theme", isDark ? "light" : "dark");
+}
+document.body.setAttribute("data-theme", localStorage.getItem("theme") || "light");
+
+/* =========================
+   COUNTDOWN (corrigé)
+   ========================= */
+let countdownInterval;
+function setCountdown() {
+    const input = document.getElementById("eventDate");
+    const targetVal = input.value;
+    if (!targetVal) return alert("Choisis une date !");
+    const target = new Date(targetVal).getTime();
+
+    clearInterval(countdownInterval);
+    countdownInterval = setInterval(() => {
+        const diff = target - Date.now();
+        if (diff <= 0) {
+            clearInterval(countdownInterval);
+            document.getElementById("countdownEvent").textContent = "🎉 Temps écoulé !";
+            document.getElementById("days").textContent = "00";
+            document.getElementById("hours").textContent = "00";
+            document.getElementById("minutes").textContent = "00";
+            document.getElementById("seconds").textContent = "00";
+            return;
+        }
+        const days = Math.floor(diff / (1000*60*60*24));
+        const hours = Math.floor((diff / (1000*60*60)) % 24);
+        const minutes = Math.floor((diff / (1000*60)) % 60);
+        const seconds = Math.floor((diff / 1000) % 60);
+        document.getElementById("days").textContent = String(days).padStart(2,'0');
+        document.getElementById("hours").textContent = String(hours).padStart(2,'0');
+        document.getElementById("minutes").textContent = String(minutes).padStart(2,'0');
+        document.getElementById("seconds").textContent = String(seconds).padStart(2,'0');
+        document.getElementById("countdownEvent").textContent = `Compte à rebours`;
+    }, 1000);
+}
+
+/* =========================
+   METEO & PREVISIONS 7 JOURS
+   UTILISE OpenWeather One Call API (nécessite clé)
+   ========================= */
+async function refreshWeather() {
+    if (!currentCoords) return;
+    const units = document.getElementById("unitsSelect").value;
+    await fetchWeather(currentCoords.lat, currentCoords.lon, units);
+}
+
+async function getLocation() {
+    if (!navigator.geolocation) return alert("Géolocalisation non supportée");
+    navigator.geolocation.getCurrentPosition(async pos => {
+        currentCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        await refreshWeather();
+    }, err => {
+        alert("Permission refusée ou erreur de géolocalisation");
+    });
+}
+
+async function fetchWeather(lat, lon, units='metric') {
+    const forecastEl = document.getElementById("forecastGrid");
+    const weatherError = document.getElementById("weatherError");
+    weatherError.style.display = "none";
+    try {
+        if (!OPENWEATHER_API_KEY || OPENWEATHER_API_KEY === "aaae736a252054e7b8088977ac47870d") {
+            weatherError.style.display = "block";
+            weatherError.textContent = "Ajoute ta clé OpenWeather dans le fichier pour activer la météo.";
+            return;
+        }
+        // Appel One Call 3.0: endpoint /data/2.5/onecall (ou 3.0 selon doc). Ici on utilise old onecall for broad compatibility.
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&units=${units}&lang=fr&appid=${aaae736a252054e7b8088977ac47870d}`);
+        if (!res.ok) throw new Error("Erreur API météo");
+        const data = await res.json();
+        document.getElementById("cityName").textContent = `Lat ${lat.toFixed(2)} - Lon ${lon.toFixed(2)}`;
+        document.getElementById("weatherTemp").textContent = `${Math.round(data.current.temp)}°${units==='metric'?'C':'F'}`;
+        document.getElementById("humidity").textContent = `${data.current.humidity}%`;
+        document.getElementById("windSpeed").textContent = `${Math.round(data.current.wind_speed)} ${units==='metric'?'m/s':'mph'}`;
+        document.getElementById("weatherDesc").textContent = data.current.weather?.[0]?.description || '';
+
+        // icone
+        const icon = data.current.weather?.[0]?.icon || '01d';
+        document.getElementById("weatherIcon").innerHTML = `<img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="icon" style="height:48px">`;
+
+        // forecast 7 jours
+        forecastEl.innerHTML = '';
+        (data.daily || []).slice(0,7).forEach(day => {
+            const date = new Date(day.dt * 1000);
+            const dayLabel = date.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
+            const icon = day.weather?.[0]?.icon || '01d';
+            const tempMin = Math.round(day.temp.min);
+            const tempMax = Math.round(day.temp.max);
+            const div = document.createElement('div');
+            div.className = 'forecast-day';
+            div.innerHTML = `<div style="font-weight:700">${dayLabel}</div>
+                             <div><img src="https://openweathermap.org/img/wn/${icon}.png" alt=""></div>
+                             <div style="font-weight:700">${tempMax} / ${tempMin}</div>
+                             <div style="opacity:.8">${day.weather?.[0]?.description || ''}</div>`;
+            forecastEl.appendChild(div);
+        });
+    } catch (err) {
+        weatherError.style.display = "block";
+        weatherError.textContent = "Impossible de récupérer la météo";
+    }
+}
+
+/* =========================
+   CALENDAR SIMPLE
+   - Affiche mois
+   - Permets ajout d'un événement simple
+   - Sauvegarde événements dans localStorage
+   ========================= */
+const calGrid = document.getElementById("calGrid");
+const monthLabel = document.getElementById("currentMonthLabel");
+let calDate = new Date();
+let events = JSON.parse(localStorage.getItem('events_v1') || '{}');
+
+function renderCalendar() {
+    calGrid.innerHTML = '';
+    const year = calDate.getFullYear();
+    const month = calDate.getMonth();
+    monthLabel.textContent = calDate.toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
+
+    // premier jour du mois (lundi-based grid)
+    const firstDay = new Date(year, month, 1);
+    const startDayIndex = (firstDay.getDay() + 6) % 7; // 0 = lundi ...
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+
+    // previous month filler
+    for (let i=0;i<startDayIndex;i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell';
+        cell.innerHTML = '';
+        calGrid.appendChild(cell);
+    }
+
+    for (let d=1; d<=daysInMonth; d++) {
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell';
+        const dateNum = document.createElement('div');
+        dateNum.className = 'date-num';
+        dateNum.textContent = d;
+        cell.appendChild(dateNum);
+
+        const iso = new Date(year,month,d).toISOString().slice(0,10);
+        const dayEvents = events[iso] || [];
+        if (dayEvents.length) {
+            const ev = document.createElement('div');
+            ev.className = 'event';
+            ev.textContent = dayEvents[0].title;
+            cell.appendChild(ev);
+        }
+
+        // Today highlight
+        const today = new Date();
+        if (today.getFullYear()===year && today.getMonth()===month && today.getDate()===d) {
+            cell.classList.add('today');
+        }
+
+        // click -> select date
+        cell.addEventListener('click', () => {
+            document.getElementById('eventForm').style.display = 'block';
+            document.getElementById('eventDateInput').value = `${iso}T09:00`;
+            document.getElementById('eventTitleInput').value = (dayEvents[0]?.title) || '';
+            // store selected date in save button dataset
+            document.getElementById('saveEventBtn').dataset.date = iso;
+        });
+
+        calGrid.appendChild(cell);
+    }
+}
+document.getElementById('prevMonthBtn').addEventListener('click', () => { calDate.setMonth(calDate.getMonth()-1); renderCalendar(); });
+document.getElementById('nextMonthBtn').addEventListener('click', () => { calDate.setMonth(calDate.getMonth()+1); renderCalendar(); });
+document.getElementById('addEventBtn').addEventListener('click', () => {
+    document.getElementById('eventForm').style.display = 'block';
+    const iso = new Date().toISOString().slice(0,10);
+    document.getElementById('eventDateInput').value = `${iso}T09:00`;
+    document.getElementById('eventTitleInput').value = '';
+    document.getElementById('saveEventBtn').dataset.date = iso;
+});
+document.getElementById('cancelEventBtn').addEventListener('click', () => {
+    document.getElementById('eventForm').style.display = 'none';
+});
+document.getElementById('saveEventBtn').addEventListener('click', () => {
+    const dateIso = document.getElementById('saveEventBtn').dataset.date;
+    const title = document.getElementById('eventTitleInput').value.trim();
+    if (!title) return alert("Donne un titre à l'événement");
+    const datetime = document.getElementById('eventDateInput').value;
+    events[dateIso] = events[dateIso] || [];
+    events[dateIso].push({ title, datetime });
+    localStorage.setItem('events_v1', JSON.stringify(events));
+    document.getElementById('eventForm').style.display = 'none';
+    renderCalendar();
+});
+renderCalendar();
+/* =========================
+   SAVER: lecture automatique de citation si coché toutes les X secondes
+   ========================= */
+document.getElementById('autoRead').addEventListener('change', (e) => {
+    if (e.target.checked) {
+        // lire la citation actuelle
+        const q = document.getElementById("dailyQuote").textContent;
+        const a = document.getElementById("quoteAuthor").textContent.replace('— ','');
+        speakText(`${q} — ${a}`);
+    } else {
+        synth && synth.cancel();
+    }
+});
+
+/* =========================
+   INIT: récupération périodique citation (tous les jours) -> pour dev on rafraîchit chaque heure
+   ========================= */
+setInterval(setDailyQuote, 1000*60*60); // hourly refresh (en prod: once/day)
+setDailyQuote();
+
+/* =========================
+   UTILITAIRES PARTAGE (simples)
+   ========================= */
+function shareOnTwitter(){ window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(document.getElementById('dailyQuote').textContent)}`); }
+function shareOnFacebook(){ alert("Facebook API: à implémenter (ou partage manuel)"); }
+function shareOnWhatsApp(){ window.open(`https://wa.me/?text=${encodeURIComponent(document.getElementById('dailyQuote').textContent)}`); }
+function shareOnLinkedIn(){ alert("LinkedIn API: à implémenter"); }
+
+/* =========================
+   REFRESH WEATHER WHEN PAGE LOAD + theme restoration
+   ========================= */
+if (navigator.geolocation) {
+    // try to get quick location silently
+    navigator.geolocation.getCurrentPosition(pos => {
+        currentCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        refreshWeather();
+    }, ()=>{ /* no location */ });
+}
+
+</script>
+</body>
+</html>
