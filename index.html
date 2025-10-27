@@ -301,6 +301,9 @@ async function setDailyQuote() {
     }
 }
 setDailyQuote();
+ <footer style="margin-top: 50px; text-align: center; font-size: 0.9em; color: #00ffff;">
+   EMMANUEL TSINGAMBIA 
+  </footer>
 
 const synth = window.speechSynthesis;
 function speakText(text) {
@@ -318,58 +321,6 @@ document.getElementById("readQuoteBtn").addEventListener('click', () => {
 });
 document.getElementById("stopReadBtn").addEventListener('click', () => synth && synth.cancel());
 
-/* =========================
-   CAPITALES AFRICAINES (RestCountries + images Unsplash)
-   ========================= */
-async function loadCapitals(region = "all") {
-    const grid = document.getElementById("capitalsGrid");
-    grid.innerHTML = "Chargement...";
-    try {
-        const res = await fetch("https://restcountries.com/v3.1/region/africa");
-        let countries = await res.json();
-
-        // filter by region (simple mapping by cca2 codes)
-        const zones = {
-            central: ["CM","CG","GA","CD","GQ","ST","TD","CF"],
-            west: ["SN","GN","SL","LR","CI","GH","TG","BJ","NG","ML","BF","MR","NE","CV","GM"],
-            east: ["KE","UG","TZ","ET","ER","DJ","SO","RW","BI","SS","MG","MU","SC"],
-            north: ["DZ","EG","TN","MA","LY","SD","EH"],
-            south: ["ZA","NA","BW","ZW","ZM","MW","LS","SZ","AO","MZ"]
-        };
-
-        if (region !== "all") {
-            countries = countries.filter(c => zones[region]?.includes(c.cca2));
-        }
-
-        grid.innerHTML = "";
-        // limit for performance
-        for (const country of countries.slice(0, 40)) {
-            const capital = country.capital?.[0] || country.name.common;
-            const flag = country.flag || '';
-            const nameFr = country.translations?.fra?.common || country.name.common;
-            const img = `https://source.upload.wikimedia.org/wikipedia/commons/600x400/?${encodeURIComponent(capital + ' ' + nameFr + ' city')}`;
-            const card = document.createElement('div');
-            card.className = 'capital-card';
-            card.innerHTML = `
-                <div class="capital-image"><img src="${img}" alt="${capital}"></div>
-                <div class="capital-info">
-                    <div class="capital-name">${flag} ${capital}</div>
-                    <div class="capital-description">${nameFr}</div>
-                </div>`;
-            grid.appendChild(card);
-        }
-    } catch (err) {
-        grid.innerHTML = "<div>Erreur lors du chargement des capitales</div>";
-    }
-}
-loadCapitals();
-
-function showAfricanCapitals(region) {
-    // toggle active class (simple)
-    document.querySelectorAll(".gallery-btn").forEach(b => b.classList.remove("active"));
-    event.target.classList.add("active");
-    loadCapitals(region);
-}
 
 /* =========================
    THEME
@@ -384,13 +335,24 @@ document.body.setAttribute("data-theme", localStorage.getItem("theme") || "light
 /* =========================
    COUNTDOWN (corrigé)
    ========================= */
+/* =========================
+   COUNTDOWN AVEC LOCALSTORAGE, EFFETS ET MUSIQUE
+   ========================= */
 let countdownInterval;
+const countdownSound = new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"); // douce musique
+countdownSound.volume = 0.3; // volume bas
+
 function setCountdown() {
     const input = document.getElementById("eventDate");
     const targetVal = input.value;
     if (!targetVal) return alert("Choisis une date !");
+    
     const target = new Date(targetVal).getTime();
+    localStorage.setItem("countdownTarget", target); // sauvegarde dans localStorage
+    startCountdown(target);
+}
 
+function startCountdown(target) {
     clearInterval(countdownInterval);
     countdownInterval = setInterval(() => {
         const diff = target - Date.now();
@@ -401,6 +363,15 @@ function setCountdown() {
             document.getElementById("hours").textContent = "00";
             document.getElementById("minutes").textContent = "00";
             document.getElementById("seconds").textContent = "00";
+            localStorage.removeItem("countdownTarget");
+            
+            // effet visuel simple
+            document.body.style.background = "radial-gradient(circle, #ff9a9e, #fad0c4, #fad0c4)";
+            document.body.classList.add("countdown-finished");
+            setTimeout(() => document.body.style.background = ""); // remet le fond initial après 10s
+
+            // joue la douce musique
+            countdownSound.play();
             return;
         }
         const days = Math.floor(diff / (1000*60*60*24));
@@ -414,6 +385,10 @@ function setCountdown() {
         document.getElementById("countdownEvent").textContent = `Compte à rebours`;
     }, 1000);
 }
+
+// au chargement de la page : reprendre le compte à rebours si une date est stockée
+const savedTarget = localStorage.getItem("countdownTarget");
+if (savedTarget) startCountdown(Number(savedTarget));
 
 /* =========================
    METEO & PREVISIONS 7 JOURS
